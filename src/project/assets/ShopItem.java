@@ -3,7 +3,7 @@ package project.assets;
 public class ShopItem {
     private final String name;
     private final double price;
-    private final int quantity;
+    private int quantity;
     private final boolean isPartofSet;
    
 
@@ -25,5 +25,8 @@ public class ShopItem {
     }
     public boolean isPartofSet() {
         return isPartofSet;
+    }
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 }

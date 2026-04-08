@@ -1,75 +1,96 @@
 package project.assets;
-import java.util.Arrays;
+
+import java.util.*;
 
 public class Order {
 
-    private final ShopItem[] cartItems;
-    private final int[] quantities;
-    private int count;
-   
+    private String customerName;
+    private List<Object> orderList;
 
-    private static final double BULK_DISCOUNT = 0.10;
-    private static final double SET_DISCOUNT = 0.05;
-    private static final double QUANTITY_DISCOUNT = 0.02;
-
-    public Order(int size) {
-        cartItems = new ShopItem[size];
-        quantities = new int[size];
-        count = 0;
+    public Order(String customerName) {
+        this.customerName = customerName;
+        this.orderList = new ArrayList<>();
     }
 
-    public void addItem(ShopItem item, int quantity) {
-        if (count < cartItems.length) {   
-        cartItems[count] = item;
-            quantities[count] = quantity;
-            count++;
-    } else {
-            System.out.println("Cart is full!");
-        }
-    }
-    public void displayCart() {
-        System.out.println("Items in Cart:");
-        for (int i = 0; i < count; i++) {
-            ShopItem item = cartItems[i];
-            System.out.println("- " + item.getName()
-                    + " | Price: $" + item.getPrice());
-        }
+    public void addItem(ShopItem item) {
+        orderList.add(item);
     }
 
-    public double calculateTotal() {
-        double total = 0.0;
-        int setCount = 0;
-        int totalQuantity = 0;
+    public void addSet(ShopSet set) {
+        orderList.add(new ShopSet(set));
+    }
 
-        for (int i = 0; i < count; i++) {
-            total += cartItems[i].getPrice() * quantities[i];
-            /*shopItem item = cartItems[i];
-            total += item.getPrice() * item.getGetOrderedQuantity();
-            totalQuantity += item.getQuantity();
+    public int getTotalItemCount() {
+        int count = 0;
 
-            if (item.isPartofSet()) {
-                setCount++;*/
+        for (Object obj : orderList) {
+            if (obj instanceof ShopItem item) {
+                count += item.getQuantity();
+            } else if (obj instanceof ShopSet set) {
+                for (ShopItem item : set.getItems()) {
+                    count += item.getQuantity();
+                }
             }
-
-        if (count > 5) {
-            total *= (1 - BULK_DISCOUNT);
         }
 
-        if (setCount >= 3) {
-            total *= (1 - SET_DISCOUNT);
-        }
+        return count;
+    }
 
-        if (totalQuantity < 2) {
-            total *= (1 - QUANTITY_DISCOUNT);
+    // Calculate total price dynamically
+    public double calculateTotal() {
+        double total = 0;
+
+        for (Object obj : orderList) {
+            if (obj instanceof ShopItem item) {
+                total += item.getPrice() * item.getQuantity();
+            } else if (obj instanceof ShopSet set) {
+                total += set.getTotalPrice();
+            }
+        }
+        int totalItems = getTotalItemCount();
+
+        if (totalItems > 10) {
+            total *= 0.80; // 20% off
+        } else if (totalItems > 6) {
+            total *= 0.85; // 15% off
+        } else if (totalItems > 3) {
+            total *= 0.90; // 10% off
         }
 
         return total;
     }
-    
-    public ShopItem[] getItems(){
-        return Arrays.copyOf(cartItems, count);
-    }
-    public int getItemCount(){
-        return count;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Customer: ").append(customerName).append("\n");
+        sb.append("Order Details:\n");
+
+        for (Object obj : orderList) {
+            if (obj instanceof ShopItem item) {
+                sb.append("- Item: ")
+                  .append(item.getName())
+                  .append(" ($")
+                  .append(item.getPrice())
+                  .append(")\n");
+            } else if (obj instanceof ShopSet set) {
+                sb.append("- Set: ").append(set.getSetName()).append("\n");
+
+                for (ShopItem item : set.getItems()) {
+                    sb.append("   • ")
+                      .append(item.getName())
+                      .append(" x").append(item.getQuantity())
+                      .append(" ($")
+                      .append(item.getPrice())
+                      .append(")\n");
+                }
+            }
+        }
+
+        sb.append("Total Items: ").append(getTotalItemCount()).append("\n");
+        sb.append("Final Price: $").append(calculateTotal());
+
+        return sb.toString();
     }
 }

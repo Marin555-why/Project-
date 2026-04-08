@@ -23,9 +23,10 @@ public class Shop {
 
     private ArrayList<Staff> staffs;
     private ArrayList<Order> orders;
+    public ArrayList<Customer> customers = new ArrayList<>();
     public Staff loggedInUser;
     private ArrayList<ShopItem> items;
-     public Shop() {
+    public Shop() {
         items = new ArrayList<>();
         orders = new ArrayList<>();
         staffs = new ArrayList<>();
@@ -36,7 +37,10 @@ public class Shop {
             items.add(new ShopItem("Sofa", 200.0, 3, false));
             items.add(new ShopItem("Action Figure", 500.0, 2, true));
             items.add(new ShopItem("Plushie", 300.0, 4, true));
-   
+        // sample sets
+        ShopSet set = new ShopSet("Kids Set");
+        set.addItem(items.get(0)); // Brick
+        set.addItem(items.get(2)); // Duck Chair
         staffs.add(new ManagerStaff("admin", "001", "000", "Admin", "admin123", "Manager"));
         // sample staff
         staffs.add(new ManagerStaff("John", "002", "017539098", "John Pork", "p0rkch0ps", "Manager"));
@@ -48,10 +52,10 @@ public class Shop {
     
     public void validatePassword(String password) throws LoginException {
         if (password.length() > 8 || !password.matches(".*[.,?/].*") || password.matches(".*[0-9].*")) {
-            throw new LoginException("Password cannot contain symbols like . , ? /");
+            throw new LoginException("Password can't contain more than 8 characters or symbols like . , ? /");
         }
     }
-
+   
     
     public boolean login(String username, String password) {
     Optional<Staff> found = staffs.stream()
@@ -68,28 +72,10 @@ public class Shop {
         return false;
     }
 }
-    public void start(Scanner sc) {
-        while (true) {
-            System.out.println("\n==== WELCOME TO SHOP ====");
-            System.out.println("1. Login as Customer");
-            System.out.println("2. Login as Staff");
-            System.out.println("3. Exit");
-
-            int choice = sc.nextInt();
-            sc.nextLine();
-
-            switch (choice) {
-                case 1 -> customerMenu(sc);
-                case 2 -> staffLogin(sc);
-                case 3 -> {
-                    System.out.println("Goodbye!");
-                    return;
-                }
-                default -> System.out.println("Invalid choice");
-            }
-        }
+    public void addCustomer(Customer customer){
+        customers.add(customer);
     }
-    
+
     public void customerMenu(Scanner sc) {
         System.out.println("\n=== CUSTOMER MENU ===");
 
@@ -121,13 +107,16 @@ public class Shop {
         String customerName = sc.nextLine();
 
         Customer c = new Customer(customerName,0,"","", "", loggedInUser);
-        Order order = new Order(cart.size());
+        Order order = new Order(customerName);
         for(ShopItem item:cart){
-            order.addItem(item,1);
+            order.addItem(item);
         }
         orders.add(order);
 
         System.out.println("Order placed successfully!");
+    }
+    public void addStaff(Staff staff){
+        staffs.add(staff);
     }
 
     // Login Methods
@@ -233,7 +222,7 @@ public class Shop {
         Predicate<Order> bigOrder = new Predicate<>() {
             @Override
             public boolean test(Order o) {
-                return o.getItemCount() > 2;
+                return o.getTotalItemCount() > 2;
             }
         };
 
@@ -261,11 +250,11 @@ public class Shop {
         return items;
     }
     public Order createOrder(String name, List<String> itemNames){
-        Order order = new Order(itemNames.size()); 
+        Order order = new Order(name); 
         for(String n:itemNames){
             for (ShopItem item : items){
                 if(item.getName().equalsIgnoreCase(n.trim())){
-                    order.addItem(item, 1);
+                    order.addItem(item);
                 }
             }
         }
@@ -275,5 +264,8 @@ public class Shop {
     
     public ArrayList<Order> getOrders(){
         return orders;
+    }
+    public ArrayList<Customer> getCustomers(){
+        return customers;
     }
 }
